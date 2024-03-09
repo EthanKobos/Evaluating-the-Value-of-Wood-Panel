@@ -9,7 +9,7 @@ from mrcnn.visualize import display_instances
 import matplotlib.pyplot as plt
 
 # Root directory of the project
-ROOT_DIR = "D:\\env_with_tensorflow1.14\\all_maskrcnn\\maskrcnn_truck_car"
+ROOT_DIR = "/mnt/g/Evaluating-the-Value-of-Wood-Panel/"                                                                       #Change
 
 # Import Mask RCNN
 sys.path.append(ROOT_DIR)  # To find local version of the library
@@ -23,8 +23,6 @@ COCO_WEIGHTS_PATH = os.path.join(ROOT_DIR, "mask_rcnn_coco.h5")
 # through the command line argument --logs
 DEFAULT_LOGS_DIR = os.path.join(ROOT_DIR, "logs")
 
-
-
 class CustomConfig(Config):
     """Configuration for training on the custom  dataset.
     Derives from the base Config class and overrides some values.
@@ -37,7 +35,7 @@ class CustomConfig(Config):
     IMAGES_PER_GPU = 2
 
     # Number of classes (including background)
-    NUM_CLASSES = 1 + 2  # Background + car and truck
+    NUM_CLASSES = 1 + 2  # Background + car and truck                                                                              #Change
 
     # Number of training steps per epoch
     STEPS_PER_EPOCH = 10
@@ -56,16 +54,16 @@ class CustomDataset(utils.Dataset):
         dataset_dir: Root directory of the dataset.
         subset: Subset to load: train or val
         """
-        # Add classes. We have only one class to add.
-        self.add_class("object", 1, "Car")
-        self.add_class("object", 2, "Truck")
+        # Add classes. We have only one class to add.                                                                               #Change
+        self.add_class("object", 1, "knotHole")
+        self.add_class("object", 2, "pinKnot")
 
         # Train or validation dataset?
         assert subset in ["train", "val"]
         dataset_dir = os.path.join(dataset_dir, subset)
 
         # We mostly care about the x and y coordinates of each region
-        annotations1 = json.load(open('D:\\env_with_tensorflow1.14\\all_maskrcnn\\maskrcnn_truck_car\\Dataset\\train\\train_json.json'))
+        annotations1 = json.load(open(os.path.join(dataset_dir,subset+'.json')))                                                  #Changed to use function arguments
         # print(annotations1)
         annotations = list(annotations1.values())  # don't need the dict keys
 
@@ -80,9 +78,9 @@ class CustomDataset(utils.Dataset):
             # the outline of each object instance. There are stores in the
             # shape_attributes (see json format above)
             polygons = [r['shape_attributes'] for r in a['regions']] 
-            objects = [s['region_attributes']['names'] for s in a['regions']]
+            objects = [s['region_attributes']['defects'] for s in a['regions']]                                                     #Change, from 'names' to 'defects'
             print("objects:",objects)
-            name_dict = {"Car": 1,"Truck": 2}
+            name_dict = {"knotHole": 1,"pinKnot": 2}                                                                                #Change
 
             # key = tuple(name_dict)
             num_ids = [name_dict[a] for a in objects]
@@ -149,12 +147,12 @@ def train(model):
     """Train the model."""
     # Training dataset.
     dataset_train = CustomDataset()
-    dataset_train.load_custom("D:\\env_with_tensorflow1.14\\all_maskrcnn\\maskrcnn_truck_car\\Dataset", "train")
+    dataset_train.load_custom("/mnt/g/Evaluating-the-Value-of-Wood-Panel/Dataset", "train")            #Change
     dataset_train.prepare()
 
     # Validation dataset
     dataset_val = CustomDataset()
-    dataset_val.load_custom("D:\\env_with_tensorflow1.14\\all_maskrcnn\\maskrcnn_truck_car\\Dataset", "val")
+    dataset_val.load_custom("/mnt/g/Evaluating-the-Value-of-Wood-Panel/Dataset", "val")                #Change
     dataset_val.prepare()
 
     # *** This training schedule is an example. Update to your needs ***
@@ -166,9 +164,7 @@ def train(model):
                 learning_rate=config.LEARNING_RATE,
                 epochs=20,
                 layers='heads')
-			
-				
-				
+
 config = CustomConfig()
 model = modellib.MaskRCNN(mode="training", config=config,
                                   model_dir=DEFAULT_LOGS_DIR)
@@ -181,5 +177,4 @@ if not os.path.exists(weights_path):
 model.load_weights(weights_path, by_name=True, exclude=[
             "mrcnn_class_logits", "mrcnn_bbox_fc",
             "mrcnn_bbox", "mrcnn_mask"])
-
-train(model)			
+train(model)
